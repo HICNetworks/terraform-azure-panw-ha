@@ -1,0 +1,64 @@
+# Copy to terraform.tfvars (git-ignored) or set these as workspace variables in
+# HCP Terraform. Values below are examples only — replace every one.
+
+# ── Resource group ─────────────────────────────────────────────────────────
+create_resource_group = true # false = deploy into an existing resource group
+resource_group_name   = "rg-vmseries-ha"
+location              = "East US" # used only when creating the resource group
+
+# ── Existing VNet ──────────────────────────────────────────────────────────
+vnet_name                = "vnet-hub"
+vnet_resource_group_name = "rg-network"
+
+# ── Subnets ────────────────────────────────────────────────────────────────
+# For each subnet: create = true needs a CIDR; create = false uses the
+# existing subnet with that name (leave its CIDR empty).
+create_management_subnet = false
+create_untrust_subnet    = false
+create_trust_subnet      = false
+create_ha2_subnet        = true
+
+subnet_management_name = "snet-fw-mgmt"
+subnet_untrust_name    = "snet-fw-untrust"
+subnet_trust_name      = "snet-fw-trust"
+ha2_subnet_name        = "snet-fw-ha2"
+
+management_subnet_cidr = ""
+untrust_subnet_cidr    = ""
+trust_subnet_cidr      = ""
+ha2_subnet_cidr        = "10.0.4.0/28"
+
+# Must be a free IP inside the trust subnet
+internal_lb_frontend_ip = "10.0.3.4"
+
+# ── Firewalls ──────────────────────────────────────────────────────────────
+fw1_name      = "vmseries-fw1"
+fw2_name      = "vmseries-fw2"
+vm_size       = "Standard_D8s_v3"
+license_type  = "bundle1" # byol | bundle1 | bundle2
+panos_version = "latest"  # pin a version for production, e.g. "11.1.4"
+
+ssh_public_key = "ssh-rsa AAAA... user@example"
+
+# Source ranges allowed to reach management SSH/HTTPS
+admin_cidrs = [
+  "203.0.113.0/24",
+]
+
+# ── Panorama ───────────────────────────────────────────────────────────────
+panorama_server     = "10.0.10.10"
+panorama_server_2   = "" # optional
+template_stack_name = "Azure-HA-Stack"
+device_group_name   = "Azure-HA-DG"
+
+# Set these as SENSITIVE variables — never commit them:
+# panorama_vm_auth_key = ""
+# panorama_master_key  = ""   # only if a non-default master key is used
+
+# ── Load balancers ─────────────────────────────────────────────────────────
+lb_health_probe_port = 80
+external_lb_ports    = [80, 443]
+
+tags = {
+  managedBy = "Terraform"
+}
