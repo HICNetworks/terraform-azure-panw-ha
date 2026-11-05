@@ -60,14 +60,22 @@ or set the same values as workspace variables in HCP Terraform.
 
 Required variables (no default): `resource_group_name`, `vnet_name`, `vnet_resource_group_name`, `internal_lb_frontend_ip`, `ssh_public_key`, `admin_cidrs`, `panorama_server`, `panorama_vm_auth_key`, `template_stack_name`, `device_group_name`.
 
-**3. Choose where state lives.** For HCP Terraform, add a `cloud` block to `terraform.tf` with your organization and workspace, then:
-```bash
-terraform login
-terraform init
-```
-For local state, just run `terraform init`.
+**3. Choose how Terraform runs and where state lives.** Terraform keeps a state file recording the resources it manages. Pick one:
 
-In HCP Terraform, set these as **environment variables** on the workspace:
+- **HCP Terraform, VCS-driven (recommended):** create a workspace connected to this repo (or your copy of it). HCP stores the state and runs plans on each push. **No code changes are needed — skip the `cloud` block below.**
+- **HCP Terraform, CLI-driven:** to run `terraform plan`/`apply` from your own machine while HCP stores the state, add a `cloud` block inside the `terraform { }` block in `terraform.tf`:
+  ```hcl
+  cloud {
+    organization = "<your-hcp-org>"
+    workspaces {
+      name = "<your-workspace>"
+    }
+  }
+  ```
+  then run `terraform login` and `terraform init`.
+- **Local state:** just run `terraform init`. State is written to `terraform.tfstate` in this folder (git-ignored). It contains sensitive values, such as the Panorama auth key, so keep it safe; use this only for testing.
+
+For either HCP option, set these as **environment variables** on the workspace:
 
 | Variable | Value |
 |---|---|
@@ -78,7 +86,7 @@ In HCP Terraform, set these as **environment variables** on the workspace:
 
 and these as **sensitive Terraform variables**: `panorama_vm_auth_key`, `panorama_master_key` (if used).
 
-**4. Plan and apply:**
+**4. Plan and apply.** For a VCS-driven workspace, queue a plan in the HCP UI (or push a commit) and confirm the apply there. Otherwise:
 ```bash
 terraform plan
 terraform apply
